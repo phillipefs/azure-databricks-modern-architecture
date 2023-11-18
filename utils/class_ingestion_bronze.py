@@ -18,29 +18,53 @@ class IngestionRawF1:
 
         self.database_raw = "analytics_f1_bronze"
 
-    def df_raw(self, format_file:str, dir_file:str, options: dict = {}, schema: str = None) -> DataFrame:
-        if format_file in dir_file:
-            path_read = dir_file
+    def df_raw(self) -> DataFrame:
+        if self.format_file in self.dir_file:
+            path_read = self.dir_file
         else:
-            path_read = dir_file + f"/*.{format_file}"
+            path_read = self.dir_file + f"/*.{self.format_file}"
 
-        if schema:
-            df_raw = self.spark.read.format(format_file).schema(schema).options(**options).load(path_read)
+        if self.schema_file:
+            df_raw = self.spark.read.format(self.format_file).schema(self.schema_file).options(**self.options_file).load(path_read)
         else:
-            df_raw = self.spark.read.format(format_file).options(**options).load(path_read)
+            df_raw = self.spark.read.format(self.format_file).options(**self.options_file).load(path_read)
+        return df_raw
 
-    def merge_into_raw(self,df_raw, table_name:str, keys_merge:list):
-        if spark.catalog.tableExists(f"{self.database_raw}.{table_name}"):
-            pass
+    def merge_into_raw(self,df_raw):
+        if spark.catalog.tableExists(f"{self.database_raw}.{self.table_name}"):
+            df_raw.createOrReplaceTempView("source")
+            spark.sql(
+                f"""
+                MERGE INTO {self.database_raw}.{self.table_name} as target
+                    USING source
+                    on source.constructorId = target.constructorId
+                    WHEN MATCHED THEN 
+                        UPDATE SET *
+                    WHEN NOT MATCHED THEN
+                        INSERT *
+                """
+            )
+            print("Table Exist")
         else:
-            df_raw.write.format("delta").saveAsTable(f"{self.database_raw}.{table_name}")
+            df_raw.write.format("delta").saveAsTable(f"{self.database_raw}.{self.table_name}")
+
+    def start_ingestion_raw(self)->None:
+        df = self.df_raw()
+        self.merge_into_raw(df)
 
 
 # COMMAND ----------
 
-f1 = IngestionRawF1(spark)
-
-f1.merge_into_raw("air_cia")
+f1 = IngestionRawF1(
+    spark = spark,
+    dir_file="dbfs:/mnt/layer-bronze/udemy-databricks/raw/constructors.json",
+    format_file="json",
+    table_name="constructors",
+    keys_merge=None,
+    options_file=None,
+    schema_file=None
+)
+f1.start_ingestion_raw()
 
 # COMMAND ----------
 
