@@ -33,6 +33,7 @@ class IngestionRawF1:
 
     def merge_into_raw(self, df_raw: DataFrame)-> None:
         if spark.catalog.tableExists(f"{self.database_raw}.{self.table_name}"):
+            print(self.table_name)
             conditions_merge = " and ".join(f"source.{key} = target.{key}" for key in self.keys_merge)
             df_raw.createOrReplaceTempView("source")
             spark.sql(
@@ -53,19 +54,6 @@ class IngestionRawF1:
         df = self.df_raw()
         self.merge_into_raw(df)
 
-
-# COMMAND ----------
-
-f1 = IngestionRawF1(
-    spark = spark,
-    dir_file="dbfs:/mnt/layer-bronze/udemy-databricks/raw/constructors.json",
-    format_file="json",
-    table_name="constructors",
-    keys_merge=["constructorId"],
-    options_file=None,
-    schema_file=None
-)
-f1.start_ingestion_raw()
 
 # COMMAND ----------
 
@@ -96,6 +84,19 @@ list_files = [
         "table_name": "drivers",
         "keys_merge": ["driverId"],
     },
+    {
+    "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/pit_stops.json",
+    "file_format": "json",
+    "options": {"multiline": True,},
+    "table_name": "pit_stops",
+    "keys_merge": ["raceId","driverId", "stop"],
+    },
+    {
+    "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/results.json",
+    "file_format": "json",
+    "table_name": "resuls",
+    "keys_merge": ["resultId","raceId","driverId","constructorId"],
+    }
 ]
 
 # COMMAND ----------
@@ -156,9 +157,21 @@ list_files = [
         "table_name": "drivers",
         "keys_merge": ["driverId"],
     },
+    {
+    "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/pit_stops.json",
+    "file_format": "json",
+    "table_name": "pit_stops",
+    "keys_merge": ["raceId","driverId"],
+    },
+    {
+    "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/results.json",
+    "file_format": "json",
+    "table_name": "resuls",
+    "keys_merge": ["resultId","raceId","driverId","constructorId"],
+    }
 ]
 
 # Iniciar threads para processar cada arquivo em paralelo usando ThreadPoolExecutor
-with ThreadPoolExecutor(max_workers=4) as executor:
+with ThreadPoolExecutor(max_workers=6) as executor:
     executor.map(process_file, list_files)
 
