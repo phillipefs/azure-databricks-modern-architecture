@@ -33,17 +33,17 @@ list_files = [
         "keys_merge": ["driverId"],
     },
     {
-    "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/pit_stops.json",
-    "file_format": "json",
-    "options": {"multiline": True,},
-    "table_name": "pit_stops",
-    "keys_merge": ["raceId","driverId", "stop"],
+        "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/pit_stops.json",
+        "file_format": "json",
+        "options": {"multiline": True,},
+        "table_name": "pit_stops",
+        "keys_merge": ["raceId","driverId", "stop"]
     },
     {
-    "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/results.json",
-    "file_format": "json",
-    "table_name": "resuls",
-    "keys_merge": ["resultId","raceId","driverId","constructorId"],
+        "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/results.json",
+        "file_format": "json",
+        "table_name": "resuls",
+        "keys_merge": ["resultId","raceId","driverId","constructorId"]
     }
 ]
 
