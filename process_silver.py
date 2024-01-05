@@ -1,11 +1,12 @@
 # Databricks notebook source
-# DBTITLE 1,Circuits_Silver
+# DBTITLE 1,Import Libs
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from pyspark.sql import DataFrame
 
 # COMMAND ----------
 
+# DBTITLE 1,Load Circuits
 df_circuits = spark.read.format("delta").table("analytics_f1_bronze.circuits")
 df_circuits = df_circuits\
     .select(
@@ -17,9 +18,24 @@ df_circuits = df_circuits\
         col("lat").alias("latitude"),
         col("lng").alias("longitude"),
         col("alt").alias("altitude"))\
-    .withColumn("ingestion_date", current_timestamp()).show()
+    .withColumn("ingestion_date", current_timestamp())
+df_circuits.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.circuits")
         
 
 # COMMAND ----------
 
-display(df_circuits)
+# DBTITLE 1,Load Race
+df_race = spark.read.format("delta").table("analytics_f1_bronze.races")
+df_race = df_race\
+    .withColumn("ingestion_date", current_timestamp())\
+    .withColumn("race_timestamp", to_timestamp(concat(col("date"), lit(" "), col("time")), "yyyy-MM-dd HH:mm:ss"))\
+    .select(
+        col("raceId").alias("race_id"),
+        col("year").alias("race_year"),
+        col("round"),
+        col("circuitId").alias("circuit_id"),
+        col("name"),
+        col("race_timestamp"),
+        col("ingestion_date"))
+
+df_race.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.races")
