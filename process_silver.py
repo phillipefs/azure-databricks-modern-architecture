@@ -73,3 +73,27 @@ df_drivers = df_drives\
 
 df_drives.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.drivers")
 
+
+# COMMAND ----------
+
+# DBTITLE 1,Load Results
+df_results = spark.read.format("delta").table("analytics_f1_bronze.results")
+
+df_results = df_results.select(
+    col("resultId").alias("result_id"),
+    col("raceId").alias("race_id"),
+    col("driverId").alias("driver_id"),
+    col("constructorId").alias("constructor_id"),
+    col("fastestLap").cast("int").alias("fastest_lap"),
+    col("fastestLapSpeed").cast("float").alias("fastest_lap_speed"),
+    col("fastestLapTime").alias("fastest_lap_time"),
+    col("grid"),
+    col("laps"),
+    col("milliseconds").cast("long"),
+    col("number"),
+    col("points"),
+    col("position").cast("int"),
+    col("positionOrder").alias("position_order"),
+    col("positionText").alias("position_text"),
+    col("rank").cast("int"))
+df_results.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.results")
