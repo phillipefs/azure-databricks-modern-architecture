@@ -39,3 +39,18 @@ df_race = df_race\
         col("ingestion_date"))
 
 df_race.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.races")
+
+# COMMAND ----------
+
+# DBTITLE 1,Load Constructors
+df_constructors = spark.read.format("delta").table("analytics_f1_bronze.constructors")
+
+df_constructors = df_constructors\
+    .select(
+        col("constructorId").alias("costructor_id"),
+        col("constructorRef").alias("constructor_ref"),
+        col("name"),
+        col("nationality"))\
+    .withColumn("ingestion_date", current_timestamp())
+df_constructors.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.constructors")
+    
