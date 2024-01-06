@@ -54,3 +54,22 @@ df_constructors = df_constructors\
     .withColumn("ingestion_date", current_timestamp())
 df_constructors.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.constructors")
     
+
+# COMMAND ----------
+
+# DBTITLE 1,Load Drivers
+df_drives = spark.read.format("delta").table("analytics_f1_bronze.drivers")
+
+df_drivers = df_drives\
+  .select(
+      regexp_replace(col("code"), "\\\\N", "").alias("code"),
+      col("dob").cast("date"),
+      col("driverId").alias("drive_id"),
+      col("driverRef").alias("drive_ref"),
+      concat(col("name.forename"), lit(" "), col("name.surname")).alias("name"),
+      col("nationality"),
+      regexp_replace(col("number"), "\\\\N", "").cast("int").alias("number"))\
+   .replace("", None)
+
+df_drives.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.drivers")
+
