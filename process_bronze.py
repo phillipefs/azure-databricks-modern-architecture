@@ -42,8 +42,15 @@ list_files = [
     {
         "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/results.json",
         "file_format": "json",
-        "table_name": "resuls",
+        "table_name": "results",
         "keys_merge": ["resultId","raceId","driverId","constructorId"]
+    },
+    {
+        "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/lap_times",
+        "file_format": "csv",
+        "table_name": "lap_times",
+        "keys_merge": ["raceId","driverId","lap", "position"],
+        "schema":"raceId INT, driverId INT, lap INT, position INT, time STRING, milliseconds STRING"
     }
 ]
 
