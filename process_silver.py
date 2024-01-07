@@ -69,9 +69,10 @@ df_drivers = df_drives\
       concat(col("name.forename"), lit(" "), col("name.surname")).alias("name"),
       col("nationality"),
       regexp_replace(col("number"), "\\\\N", "").cast("int").alias("number"))\
-   .replace("", None)
+   .replace("", None)\
+   .withColumn("ingestion_date", current_timestamp())   
 
-df_drives.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.drivers")
+df_drives.write.format("delta").option("mergeSchema", "true").mode("overwrite").saveAsTable("analytics_f1_silver.drivers")
 
 
 # COMMAND ----------
@@ -79,21 +80,41 @@ df_drives.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silv
 # DBTITLE 1,Load Results
 df_results = spark.read.format("delta").table("analytics_f1_bronze.results")
 
-df_results = df_results.select(
-    col("resultId").alias("result_id"),
-    col("raceId").alias("race_id"),
-    col("driverId").alias("driver_id"),
-    col("constructorId").alias("constructor_id"),
-    col("fastestLap").cast("int").alias("fastest_lap"),
-    col("fastestLapSpeed").cast("float").alias("fastest_lap_speed"),
-    col("fastestLapTime").alias("fastest_lap_time"),
-    col("grid"),
-    col("laps"),
-    col("milliseconds").cast("long"),
-    col("number"),
-    col("points"),
-    col("position").cast("int"),
-    col("positionOrder").alias("position_order"),
-    col("positionText").alias("position_text"),
-    col("rank").cast("int"))
-df_results.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.results")
+df_results = df_results\
+    .select(
+        col("resultId").alias("result_id"),
+        col("raceId").alias("race_id"),
+        col("driverId").alias("driver_id"),
+        col("constructorId").alias("constructor_id"),
+        col("fastestLap").cast("int").alias("fastest_lap"),
+        col("fastestLapSpeed").cast("float").alias("fastest_lap_speed"),
+        col("fastestLapTime").alias("fastest_lap_time"),
+        col("grid"),
+        col("laps"),
+        col("milliseconds").cast("long"),
+        col("number"),
+        col("points"),
+        col("position").cast("int"),
+        col("positionOrder").alias("position_order"),
+        col("positionText").alias("position_text"),
+        col("rank").cast("int"))\
+    .withColumn("ingestion_date", current_timestamp())
+df_results.write.format("delta").option("mergeSchema", "true").mode("overwrite").saveAsTable("analytics_f1_silver.results")
+
+# COMMAND ----------
+
+# DBTITLE 1,Load Pit Stops
+df_pit_stops = spark.read.format("delta").table("analytics_f1_bronze.pit_stops")
+
+df_pit_stops\
+    .select(
+        col("driverId").alias("driver_id"),
+        col("duration"),
+        col("lap"),
+        col("milliseconds"),
+        col("raceId").alias("race_id"),
+        col("stop"),
+        col("time"))\
+    .withColumn("ingestion_date", current_timestamp())
+
+df_pit_stops.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.pit_stops")
