@@ -118,3 +118,19 @@ df_pit_stops\
     .withColumn("ingestion_date", current_timestamp())
 
 df_pit_stops.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.pit_stops")
+
+# COMMAND ----------
+
+# DBTITLE 1,Load Lap Times
+df_lap_times = spark.read.format("delta").table("analytics_f1_bronze.lap_times")
+df_lap_times = df_lap_times\
+    .select(
+        col("raceId").alias("race_id"),
+        col("driverId").alias("drive_id"),
+        col("lap"),
+        col("position"),
+        col("time"),
+        col("milliseconds"))\
+    .withColumn("ingestion_date", current_timestamp())
+df_lap_times.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.lap_times")
+
