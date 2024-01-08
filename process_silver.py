@@ -6,6 +6,11 @@ from pyspark.sql import DataFrame
 
 # COMMAND ----------
 
+# DBTITLE 1,Import Common Functions
+# MAGIC %run ./utils/common_functions
+
+# COMMAND ----------
+
 # DBTITLE 1,Load Circuits
 df_circuits = spark.read.format("delta").table("analytics_f1_bronze.circuits")
 df_circuits = df_circuits\
@@ -17,8 +22,9 @@ df_circuits = df_circuits\
         col("country"),
         col("lat").alias("latitude"),
         col("lng").alias("longitude"),
-        col("alt").alias("altitude"))\
-    .withColumn("ingestion_date", current_timestamp())
+        col("alt").alias("altitude"))
+
+df_circuits = add_ingestion_date(df_circuits)
 df_circuits.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.circuits")
         
 
@@ -27,7 +33,6 @@ df_circuits.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_si
 # DBTITLE 1,Load Race
 df_race = spark.read.format("delta").table("analytics_f1_bronze.races")
 df_race = df_race\
-    .withColumn("ingestion_date", current_timestamp())\
     .withColumn("race_timestamp", to_timestamp(concat(col("date"), lit(" "), col("time")), "yyyy-MM-dd HH:mm:ss"))\
     .select(
         col("raceId").alias("race_id"),
@@ -35,9 +40,9 @@ df_race = df_race\
         col("round"),
         col("circuitId").alias("circuit_id"),
         col("name"),
-        col("race_timestamp"),
-        col("ingestion_date"))
-
+        col("race_timestamp"))
+    
+df_race = add_ingestion_date(df_race)
 df_race.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.races")
 
 # COMMAND ----------
@@ -50,8 +55,9 @@ df_constructors = df_constructors\
         col("constructorId").alias("costructor_id"),
         col("constructorRef").alias("constructor_ref"),
         col("name"),
-        col("nationality"))\
-    .withColumn("ingestion_date", current_timestamp())
+        col("nationality"))
+
+df_constructors = add_ingestion_date(df_constructors)
 df_constructors.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.constructors")
     
 
@@ -69,9 +75,9 @@ df_drivers = df_drives\
       concat(col("name.forename"), lit(" "), col("name.surname")).alias("name"),
       col("nationality"),
       regexp_replace(col("number"), "\\\\N", "").cast("int").alias("number"))\
-   .replace("", None)\
-   .withColumn("ingestion_date", current_timestamp())   
+   .replace("", None)
 
+df_drivers = add_ingestion_date(df_drivers)
 df_drives.write.format("delta").option("mergeSchema", "true").mode("overwrite").saveAsTable("analytics_f1_silver.drivers")
 
 
@@ -97,8 +103,9 @@ df_results = df_results\
         col("position").cast("int"),
         col("positionOrder").alias("position_order"),
         col("positionText").alias("position_text"),
-        col("rank").cast("int"))\
-    .withColumn("ingestion_date", current_timestamp())
+        col("rank").cast("int"))
+
+df_results = add_ingestion_date(df_results)
 df_results.write.format("delta").option("mergeSchema", "true").mode("overwrite").saveAsTable("analytics_f1_silver.results")
 
 # COMMAND ----------
@@ -114,9 +121,9 @@ df_pit_stops\
         col("milliseconds"),
         col("raceId").alias("race_id"),
         col("stop"),
-        col("time"))\
-    .withColumn("ingestion_date", current_timestamp())
+        col("time"))
 
+df_pit_stops = add_ingestion_date(df_pit_stops)
 df_pit_stops.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.pit_stops")
 
 # COMMAND ----------
@@ -130,8 +137,9 @@ df_lap_times = df_lap_times\
         col("lap"),
         col("position"),
         col("time"),
-        col("milliseconds"))\
-    .withColumn("ingestion_date", current_timestamp())
+        col("milliseconds"))
+
+df_lap_times = add_ingestion_date(df_lap_times)
 df_lap_times.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.lap_times")
 
 
@@ -150,6 +158,7 @@ df_qualifying\
         col("position").cast("int").alias("position"),
         col("q1"),
         col("q2"),
-        col("q3"))\
-    .withColumn("ingestion_date", current_timestamp())
+        col("q3"))
+
+df_qualifying = add_ingestion_date(df_qualifying)
 df_qualifying.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.qualifying")
