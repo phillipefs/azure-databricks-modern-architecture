@@ -1,5 +1,5 @@
 # Architecture
 
 <div aling="center">
-  <img src="img/soluction_archutecture.png" height="300" width="1600">
+  <img src="img/solution_architecture.PNG" height="300" width="700">
 </div>
