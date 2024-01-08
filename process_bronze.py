@@ -51,6 +51,13 @@ list_files = [
         "table_name": "lap_times",
         "keys_merge": ["raceId","driverId","lap", "position"],
         "schema":"raceId INT, driverId INT, lap INT, position INT, time STRING, milliseconds STRING"
+    },
+    {
+        "dir_file": "/mnt/layer-bronze/udemy-databricks/raw/qualifying",
+        "file_format": "json",
+        "options": {"multiline": True,},
+        "table_name": "qualifying",
+        "keys_merge": ["qualifyId","raceId","driverId","constructorId", "number", "position"]
     }
 ]
 
