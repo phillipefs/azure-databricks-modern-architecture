@@ -134,3 +134,22 @@ df_lap_times = df_lap_times\
     .withColumn("ingestion_date", current_timestamp())
 df_lap_times.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.lap_times")
 
+
+# COMMAND ----------
+
+# DBTITLE 1,Load Qualifying
+df_qualifying = spark.read.format("delta").table("analytics_f1_bronze.qualifying")
+
+df_qualifying\
+    .select(
+        col("constructorId").cast("int").alias("constructor_id"),
+        col("driverId").cast("int").alias("driver_id"),
+        col("qualifyId").cast("int").alias("qualify_id"),
+        col("raceId").cast("int").alias("race_id"),
+        col("number").cast("int").alias("number"),
+        col("position").cast("int").alias("position"),
+        col("q1"),
+        col("q2"),
+        col("q3"))\
+    .withColumn("ingestion_date", current_timestamp())
+df_qualifying.write.format("delta").mode("overwrite").saveAsTable("analytics_f1_silver.qualifying")
