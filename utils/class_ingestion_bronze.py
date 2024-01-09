@@ -55,7 +55,7 @@ class IngestionRawF1:
             else:
                 df_raw.write.format("delta").saveAsTable(f"{self.database_raw}.{self.table_name}")
         except Exception as e:
-            print(f"Error in merge_into_raw(): {str(e)}")
+            print(f"Merge Error | Table: {self.table_name} | MSG: {str(e)}")
 
     def start_ingestion_raw(self)->None:
         df = self.df_raw()
